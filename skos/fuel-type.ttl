@@ -1,0 +1,46 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+
+@prefix vcensos-concepts: <https://censo.vehiculos.net/schema/concepts/> .
+@prefix vcensos-concepts-fuels: <https://censo.vehiculos.net/schema/concepts/fuels/> .
+
+
+# ConceptScheme
+
+vcensos-concepts:VehicleType a skos:ConceptScheme ;
+	skos:prefLabel "Tipos de combustibles"@es ;
+	skos:prefLabel "Fuel types"@en ;
+	skos:definition "Concept scheme used to group different types of fuels"@en ;
+	skos:definition "Esquema de conceptos empleado para agrupar los diferentes tipos de combustibles"@es .
+    
+# SKOS concept listing
+
+vcensos-concepts-fuels:Gasolina a skos:Concept;
+	skos:inScheme vcensos-concepts:VehicleType ;
+	skos:prefLabel "Gasolina de 95 o 98 octanos"@es.
+    
+vcensos-concepts-fuels:Diesel a skos:Concept;
+	skos:inScheme vcensos-concepts:VehicleType ;
+	skos:prefLabel "Gasóleo A o B"@es.
+
+vcensos-concepts-fuels:Electrico a skos:Concept;
+	skos:inScheme vcensos-concepts:VehicleType ;
+	skos:prefLabel "Eléctricos de batería"@es.
+	
+vcensos-concepts-fuels:GasNatural a skos:Concept;
+	skos:inScheme vcensos-concepts:VehicleType ;
+	skos:prefLabel "Gas natural licuado o comprimido"@es.
+	
+vcensos-concepts-fuels:Hibrido a skos:Concept;
+	skos:inScheme vcensos-concepts:VehicleType ;
+	skos:prefLabel "Híbridos"@es.
+	
+vcensos-concepts-fuels:Hidrogeno a skos:Concept;
+	skos:inScheme vcensos-concepts:VehicleType ;
+	skos:prefLabel "Hidrógeno (H2)"@es.
+	
+vcensos-concepts-fuels:Otros a skos:Concept;
+	skos:inScheme vcensos-concepts:VehicleType ;
+	skos:prefLabel "Otros tipos de combustible"@es.
