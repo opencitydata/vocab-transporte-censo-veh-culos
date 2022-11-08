@@ -1,0 +1,127 @@
+PREFIX owl: <http://www.w3.org/2002/07/owl#> .
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+PREFIX qb: <http://purl.org/linked-data/cube#> .
+
+PREFIX vcensos: <https://censo.vehiculos.net/schema/> .
+PREFIX vcensos-qb: <https://censo.vehiculos.net/schema/datacube/> .
+PREFIX vcensos-qb-dsd: <https://censo.vehiculos.net/schema/datacube/dsd> .
+
+PREFIX interval: <http://reference.data.gov.uk/def/intervals/>
+
+PREFIX sdmx-concept:    <http://purl.org/linked-data/sdmx/2009/concept#> .
+PREFIX sdmx-dimension:  <http://purl.org/linked-data/sdmx/2009/dimension#> .
+PREFIX sdmx-measure:    <http://purl.org/linked-data/sdmx/2009/measure#> .
+
+
+CONSTRUCT {
+
+vcensos-qb:dataset a qb:DataSet ;
+  rdfs:label "Dataset of vehicles by Municipio and year interval" ;
+  qb:structure vcensos-qb:dsd ;
+  
+vcensos-qb:dsd a qb:DataStructureDefinition ;
+  qb:component 	
+    vcensos-qb-dsd:location , 
+    vcensos-qb-dsd:time , 
+    vcensos-qb-dsd:fuelType , 
+    vcensos-qb-dsd:vehicleType .
+
+# Component specification
+
+## Dimensions
+
+vcensos-qb-dsd:refArea a qb:ComponentSpecification ;
+  qb:dimension vcensos:refArea ;
+  rdfs:label "Location dimension" .
+  
+vcensos-qb-dsd:refPeriod a qb:ComponentSpecification ;
+  qb:dimension vcensos:refPeriod ;
+  rdfs:label "Time dimension" .
+
+vcensos-qb-dsd:fuelType a qb:ComponentSpecification ;
+  qb:dimension skos:Concept ;
+  rdfs:label "Type of fuel dimension" .
+  
+vcensos-qb-dsd:vehicleType a qb:ComponentSpecification ;
+  qb:dimension skos:Concept ;
+  rdfs:label "Type of vehicle dimension" .
+
+# Measurement
+
+vcensos-qb-dsd:censed a qb:ComponentSpecification ;
+  qb:measure sdmx-measure:obsValue ;
+  rdfs:label "Measurement of censed vehicles" .
+
+
+# Custom dimension concepts
+
+vcensos:refPeriod  a rdf:Property, qb:DimensionProperty;
+    rdfs:label "reference period"@en;
+    rdfs:subPropertyOf sdmx-dimension:refPeriod;
+    rdfs:range interval:Interval;
+    qb:concept sdmx-concept:refPeriod . 
+
+vcensos:refArea  a rdf:Property, qb:DimensionProperty;
+    rdfs:label "reference area"@en;
+    rdfs:subPropertyOf sdmx-dimension:refArea;
+    rdfs:range esadm:Municipio ;
+    qb:concept sdmx-concept:refArea . 
+
+
+# Observations
+
+?obs a qb:Observation ;
+
+  qb:dataSet vcensos-qb:dataset ;
+  
+  vcensos-qb-dsd:refPeriod ?refPeriod ;
+  vcensos-qb-dsd:refArea ?refPeriod ;
+  vcensos-qb-dsd:fuelType ?fuelType ;
+  vcensos-qb-dsd:vehicleType ?vehicleType ;
+  vcensos-qb-dsd:censed ?censed .
+
+
+} WHERE {
+
+	{
+	
+		SELECT ?obs ?censed ?refPeriod ?refArea ?fuelType ?vehicleType {
+		
+			{
+		
+				SELECT 
+				  ?refArea
+				  (COUNT(?s) AS ?censed) 
+				  (SAMPLE(?refPeriod) AS ?refPeriod)  
+				  (SAMPLE(?fuelType) AS ?fuelType) 
+				  (SAMPLE(?vehicleType) AS ?vehicleType) 
+				  (SHA1(GROUP_CONCAT(?s)) AS ?group_id) {
+				
+					VALUES ?year { "2016" "2017" "2018" }
+								
+					?s a vcensos:Vehicle ;
+					   vcensos:registeredOn ?refArea ;
+					   vcensos:fuelType ?fuelType ; 
+					   vcensos:vehicleType ?vehicleType ;
+					   vcensos:unregisterDate ?unregister ;
+					   vcensos:registerDate ?register ;
+					   
+					FILTER(YEAR(?register) == ?year && YEAR(?unregister) > ?year)
+					
+					BIND (IRI(CONCAT("http://reference.data.gov.uk/id/year/", xsd:string(?year))) AS ?refPeriod)
+				
+				}
+			
+				GROUP BY (?refArea)
+				
+			}
+			
+			BIND (IRI(CONCAT("https://censo.vehiculos.net/schema/datacube/", xsd:string(?group_id))) AS ?obs)
+			
+		}
+	
+	}
+
+
+}
